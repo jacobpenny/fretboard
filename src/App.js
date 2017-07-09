@@ -92,7 +92,7 @@ class App extends Component {
       <div className="App">
         <br/>
         <div style={{textAlign: 'center'}}>
-          <Fretboard positions={A_PENTATONIC} />
+          <Fretboard positions={all} />
         </div>
       </div>
     );
