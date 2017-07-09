@@ -80,19 +80,69 @@ const A_PENTATONIC = [
   [1, 5], [1, 8], [2, 5], [2,8], [3,5], [3,7], [4,5],  [4,7], [5,5], [5,7], [6, 5], [6,8]
 ];
 
+
+
 const all = _.flatten(_.range(1, 7).map((string) => (
   _.range(0, 22).map((fret) => (
     [string, fret]
   ))
 )));
 
+const C_MAJOR = [0, 2, 4, 5, 7, 9, 11];
+const C_MAJOR_POSITIONS = all.filter(([string, fret]) => {
+  return C_MAJOR.includes(getNote(string, fret))
+});
+
+const E_MAJOR = [1, 3, 4, 6, 8, 9, 11];
+const E_MAJOR_POSITIONS = all.filter(([string, fret]) => {
+  return E_MAJOR.includes(getNote(string, fret))
+});
+
+const SCALE_POSITIONS = {
+  'c_major': C_MAJOR_POSITIONS,
+  'e_major': E_MAJOR_POSITIONS
+};
+
+function getNote(string, fret) {
+  const TUNING = {
+    1: 4,
+    2: 11,
+    3: 7,
+    4: 2,
+    5: 9,
+    6: 4
+  };
+  return (TUNING[string] + fret) % 12;
+}
+
 class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      scale: 'c_major'
+    };
+
+    this.updateScale = this.updateScale.bind(this);
+  }
+
+  updateScale(scale) {
+    this.setState({ scale });
+  }
+
   render() {
     return (
       <div className="App">
         <br/>
         <div style={{textAlign: 'center'}}>
-          <Fretboard positions={all} />
+          <Fretboard positions={SCALE_POSITIONS[this.state.scale]} />
+          <br/>
+          <label>
+          Scale:
+          <select value={this.state.scale} onChange={(e) => this.updateScale(e.target.value)}>
+            <option value="c_major">C Major</option>
+            <option value="e_major">E Major</option>
+          </select>
+        </label>
         </div>
       </div>
     );
