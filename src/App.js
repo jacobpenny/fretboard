@@ -65,8 +65,8 @@ const Fretboard = ({positions}) => {
     getFretMidpoints(getFretCoords([3.8, 19], [96.4, 5], scaleLength, numFrets))
   ];
 
-  const markers = positions.map((position) => (
-    <Marker coords={stringCoords[position[0] - 1][position[1]]}/>
+  const markers = positions.map((position, i) => (
+    <Marker key={i} coords={stringCoords[position[0] - 1][position[1]]}/>
   ));
 
   return (
@@ -76,32 +76,45 @@ const Fretboard = ({positions}) => {
   );
 }
 
-const A_PENTATONIC = [
-  [1, 5], [1, 8], [2, 5], [2,8], [3,5], [3,7], [4,5],  [4,7], [5,5], [5,7], [6, 5], [6,8]
-];
+function getAllPositionsOfScale(scale) {
+  const allPositions = _.flatten(_.range(1, 7).map((string) => (
+    _.range(0, 22).map((fret) => (
+      [string, fret]
+    ))
+  )));
 
+  return allPositions.filter(([string, fret]) => {
+    return scale.includes(getNote(string, fret))
+  });
+}
 
+function getScale(key, scaleName) {
+  const C_SCALES = {
+    major: [0, 2, 4, 5, 7, 9, 11],
+    mixolydian: [0, 2, 4, 5, 7, 9, 10],
+    naturalMinor: [0, 2, 3, 5, 7, 8, 10]
+  };
 
-const all = _.flatten(_.range(1, 7).map((string) => (
-  _.range(0, 22).map((fret) => (
-    [string, fret]
-  ))
-)));
+  const DISTANCE_FROM_C = {
+    'A♭': 8,
+    'A': 9,
+    'B♭': 10,
+    'B': 11,
+    'C': 0,
+    'D♭': 1,
+    'D': 2,
+    'E♭': 3,
+    'E': 4,
+    'F': 5,
+    'G♭': 6,
+    'G': 7
+  };
 
-const C_MAJOR = [0, 2, 4, 5, 7, 9, 11];
-const C_MAJOR_POSITIONS = all.filter(([string, fret]) => {
-  return C_MAJOR.includes(getNote(string, fret))
-});
-
-const E_MAJOR = [1, 3, 4, 6, 8, 9, 11];
-const E_MAJOR_POSITIONS = all.filter(([string, fret]) => {
-  return E_MAJOR.includes(getNote(string, fret))
-});
-
-const SCALE_POSITIONS = {
-  'c_major': C_MAJOR_POSITIONS,
-  'e_major': E_MAJOR_POSITIONS
-};
+  const scale = C_SCALES[scaleName];
+  const distanceFromC = DISTANCE_FROM_C[key];
+  const transposedScale = scale.map((note) => ((note + distanceFromC) % 12 ));
+  return transposedScale;
+}
 
 function getNote(string, fret) {
   const TUNING = {
@@ -119,28 +132,54 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      scale: 'c_major'
+      key: 'C',
+      scale: 'major'
     };
 
     this.updateScale = this.updateScale.bind(this);
+    this.updateKey = this.updateKey.bind(this);
   }
 
   updateScale(scale) {
     this.setState({ scale });
   }
 
+  updateKey(key) {
+    this.setState({ key });
+  }
+
   render() {
+    const scale = getScale(this.state.key, this.state.scale);
+    const positions = getAllPositionsOfScale(scale);
     return (
       <div className="App">
         <br/>
         <div style={{textAlign: 'center'}}>
-          <Fretboard positions={SCALE_POSITIONS[this.state.scale]} />
+          <Fretboard positions={positions} />
           <br/>
+          <label>
+          Key:
+          <select value={this.state.key} onChange={(e) => this.updateKey(e.target.value)}>
+            <option value="A♭">A♭</option>
+            <option value="A">A</option>
+            <option value="B♭">B♭</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D♭">D♭</option>
+            <option value="D">D</option>
+            <option value="E♭">E♭</option>
+            <option value="E">E</option>
+            <option value="F">F</option>
+            <option value="G♭">G♭</option>
+            <option value="G">G</option>
+          </select>
+          </label>
           <label>
           Scale:
           <select value={this.state.scale} onChange={(e) => this.updateScale(e.target.value)}>
-            <option value="c_major">C Major</option>
-            <option value="e_major">E Major</option>
+            <option value="major">Major</option>
+            <option value="mixolydian">Mixolydian</option>
+            <option value="naturalMinor">Natural Minor</option>
           </select>
         </label>
         </div>
